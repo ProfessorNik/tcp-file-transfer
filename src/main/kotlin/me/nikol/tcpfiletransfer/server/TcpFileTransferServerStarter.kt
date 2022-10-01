@@ -1,6 +1,10 @@
 package me.nikol.tcpfiletransfer.server
 
+import org.apache.logging.log4j.LogManager
+
 fun main(args: Array<String>) {
+    val logger = LogManager.getLogger("main")
+
     println("server")
     val port : Int
     try{
@@ -14,7 +18,7 @@ fun main(args: Array<String>) {
         val server = TcpFileTransferServer(port)
         server.start()
     } catch (e: Exception) {
-        println(e.message)
+        logger.atError().withThrowable(e).log("Server error: ")
     }
 
     println("Server shut down, goodbye!")

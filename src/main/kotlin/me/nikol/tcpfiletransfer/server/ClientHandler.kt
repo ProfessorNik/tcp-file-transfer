@@ -1,5 +1,6 @@
 package me.nikol.tcpfiletransfer.server
 
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileOutputStream
 import java.net.Socket
@@ -7,11 +8,12 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class ClientHandler(private val server: TcpFileTransferServerSocket, private val client: Socket) {
+    private val logger = LogManager.getLogger(ClientHandler::class.qualifiedName)
     private val executor = Executors.newSingleThreadScheduledExecutor()
     private lateinit var fileInfo: FileInfo
     private lateinit var downloadSpeedCounter: DownloadSpeedCounter
     private val downloadSpeedLog = Runnable {
-        println("$fileInfo download speed: ${downloadSpeedCounter.downloadSpeed()} byte/millisecond")
+        logger.info("$fileInfo download speed: ${downloadSpeedCounter.downloadSpeedInKbPerSec()} kb/sec")
     }
 
 
@@ -28,7 +30,7 @@ class ClientHandler(private val server: TcpFileTransferServerSocket, private val
         resultLog()
     }
 
-    private fun receiveFile(){
+    private fun receiveFile() {
         try {
             executor.scheduleWithFixedDelay(downloadSpeedLog, 3000, 3000, TimeUnit.MILLISECONDS)
 
@@ -42,19 +44,20 @@ class ClientHandler(private val server: TcpFileTransferServerSocket, private val
     }
 
     private fun transferStartLog(){
-        println("$fileInfo transfer start")
+        logger.info("$fileInfo transfer start")
     }
 
     private fun downloadSpeedPerSessionLog(){
-        println("$fileInfo download speed per session: ${downloadSpeedCounter.downloadSpeedPerSession()} byte/millisecond")
+        logger.info("$fileInfo download speed per session: ${downloadSpeedCounter.downloadSpeedPerSessionInKbPerSec()} kb/sec")
     }
 
     private fun resultLog(){
         if (wasFileReceivedSuccessfully(fileInfo))
-            println("$fileInfo transfer completed")
+            logger.info("$fileInfo transfer completed")
         else
-            println("$fileInfo transfer failed")
+            logger.error("$fileInfo transfer failed")
     }
 
-    private fun wasFileReceivedSuccessfully(fileInfo: FileInfo) : Boolean = File(fileInfo.fileName).length() == fileInfo.size
+    private fun wasFileReceivedSuccessfully(fileInfo: FileInfo) : Boolean =
+        File(fileInfo.fileName).length() == fileInfo.size
 }

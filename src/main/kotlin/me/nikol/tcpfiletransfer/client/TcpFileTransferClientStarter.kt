@@ -1,5 +1,6 @@
 package me.nikol.tcpfiletransfer.client
 
+import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.io.FileInputStream
 
@@ -26,7 +27,10 @@ fun main(args: Array<String>) {
             transferFile(it, fileName)
         }
     } catch (e: Exception) {
-        println("File transfer failed: ${e.message}")
+        LogManager.getLogger("main")
+            .atError()
+            .withThrowable(e)
+            .log("File transfer failed: ")
     }
 }
 
